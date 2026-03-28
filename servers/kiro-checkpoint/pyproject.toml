@@ -1,0 +1,16 @@
+[project]
+name = "kiro-checkpoint"
+version = "0.1.0"
+description = "Shadow git checkpoint MCP server for Kiro CLI"
+requires-python = ">=3.10"
+dependencies = ["mcp[cli]>=1.0.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[project.scripts]
+kiro-checkpoint = "server:main"

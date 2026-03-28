@@ -1,0 +1,53 @@
+{
+  "name": "@pokutuna/mcp-chrome-tabs",
+  "version": "0.7.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pokutuna/mcp-chrome-tabs"
+  },
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "chrome",
+    "ai",
+    "macos"
+  ],
+  "bin": {
+    "mcp-chrome-tabs": "./dist/cli.js"
+  },
+  "files": [
+    "dist/**/*",
+    "CHANGELOG.md",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --import tsx src/cli.ts",
+    "inspector": "npx @modelcontextprotocol/inspector",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "defuddle": "^0.12.0",
+    "jsdom": "^24.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^24.10.1",
+    "playwright": "^1.54.1",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
