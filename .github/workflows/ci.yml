@@ -15,7 +15,9 @@ jobs:
       - run: pip install ruff mypy "mcp[cli]>=1.0.0"
       - run: ruff check .
       - run: ruff format --check .
-      - run: mypy servers/kiro-agents servers/kiro-checkpoint servers/mcp-proxy
+      - run: cd servers/kiro-agents && mypy server.py
+      - run: cd servers/kiro-checkpoint && mypy server.py
+      - run: cd servers/mcp-proxy && mypy mcp_proxy.py
 
   test:
     runs-on: ubuntu-latest

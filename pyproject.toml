@@ -20,7 +20,7 @@ python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 check_untyped_defs = true
-exclude = ["servers/chrome-tabs"]
+exclude = ["servers/chrome-tabs", "tests/", ".*/tests/"]
 
 [[tool.mypy.overrides]]
 module = ["mcp.*"]

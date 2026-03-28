@@ -2,6 +2,7 @@
 
 import subprocess
 from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("kiro-checkpoint")
@@ -14,7 +15,9 @@ def _git(work_dir: str, *args: str) -> str:
     shadow = Path(work_dir) / SHADOW_DIR
     result = subprocess.run(
         ["git", f"--git-dir={shadow}", f"--work-tree={work_dir}", *args],
-        capture_output=True, text=True, cwd=work_dir,
+        capture_output=True,
+        text=True,
+        cwd=work_dir,
     )
     if result.returncode != 0 and result.stderr.strip():
         raise RuntimeError(result.stderr.strip())
@@ -36,7 +39,8 @@ def init(work_dir: str) -> str:
         return f"Shadow repo already exists at {shadow}"
     subprocess.run(
         ["git", f"--git-dir={shadow}", f"--work-tree={work_dir}", "init"],
-        capture_output=True, check=True,
+        capture_output=True,
+        check=True,
     )
     # Exclude the shadow dir from tracking
     exclude = shadow / "info" / "exclude"

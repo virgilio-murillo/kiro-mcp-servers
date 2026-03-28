@@ -23,7 +23,9 @@ test-integration:
 lint:
 	ruff check .
 	ruff format --check .
-	mypy servers/kiro-agents servers/kiro-checkpoint servers/mcp-proxy
+	cd servers/kiro-agents && mypy server.py
+	cd servers/kiro-checkpoint && mypy server.py
+	cd servers/mcp-proxy && mypy mcp_proxy.py
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +

@@ -1,6 +1,5 @@
 """Tests for kiro-checkpoint MCP server."""
-import subprocess
-import tempfile
+
 from pathlib import Path
 
 import pytest
@@ -12,12 +11,14 @@ def work_dir(tmp_path):
 
 
 def test_module_imports():
-    from server import mcp, main, init, checkpoint, diff
+    from server import mcp
+
     assert mcp is not None
 
 
 def test_init_creates_shadow(work_dir):
     from server import init
+
     result = init(work_dir)
     assert "initialized" in result
     assert (Path(work_dir) / ".kiro-shadow").exists()
@@ -25,13 +26,15 @@ def test_init_creates_shadow(work_dir):
 
 def test_init_idempotent(work_dir):
     from server import init
+
     init(work_dir)
     result = init(work_dir)
     assert "already exists" in result
 
 
 def test_checkpoint_and_list(work_dir):
-    from server import init, checkpoint, list_checkpoints
+    from server import checkpoint, init, list_checkpoints
+
     init(work_dir)
     (Path(work_dir) / "test.txt").write_text("hello")
     result = checkpoint(work_dir, "add test file")
@@ -41,21 +44,24 @@ def test_checkpoint_and_list(work_dir):
 
 
 def test_no_changes(work_dir):
-    from server import init, checkpoint
+    from server import checkpoint, init
+
     init(work_dir)
     result = checkpoint(work_dir, "empty")
     assert "No changes" in result
 
 
 def test_diff_no_changes(work_dir):
-    from server import init, diff
+    from server import diff, init
+
     init(work_dir)
     result = diff(work_dir)
     assert "No changes" in result
 
 
 def test_branch_and_switch(work_dir):
-    from server import init, branch, list_branches, switch_branch
+    from server import branch, init, list_branches, switch_branch
+
     init(work_dir)
     branch(work_dir, "feature")
     branches = list_branches(work_dir)

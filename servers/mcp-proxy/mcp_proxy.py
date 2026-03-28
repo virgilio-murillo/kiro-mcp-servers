@@ -9,6 +9,7 @@ The proxy itself NEVER crashes — only the child process can fail.
 """
 
 import asyncio
+import contextlib
 import json
 import os
 import signal
@@ -49,8 +50,8 @@ class MCPProxy:
         async with self._child_lock:
             try:
                 if self.child and self.child.returncode is None:
-                    self.child.stdin.write(data)
-                    await self.child.stdin.drain()
+                    self.child.stdin.write(data)  # type: ignore[union-attr]
+                    await self.child.stdin.drain()  # type: ignore[union-attr]
                     return True
             except Exception:
                 pass
@@ -59,10 +60,16 @@ class MCPProxy:
     async def _send_error(self, req_id, msg: str):
         if req_id is None:
             return
-        err = json.dumps({
-            "jsonrpc": "2.0", "id": req_id,
-            "error": {"code": -32603, "message": msg},
-        }) + "\n"
+        err = (
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "error": {"code": -32603, "message": msg},
+                }
+            )
+            + "\n"
+        )
         await self._write_stdout(err.encode())
 
     async def start_child(self, start_tasks=True):
@@ -86,10 +93,8 @@ class MCPProxy:
         for t in (self._forward_task, self._stderr_task, self._watchdog_task):
             if t:
                 t.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError, Exception):
                     await t
-                except (asyncio.CancelledError, Exception):
-                    pass
         self._forward_task = self._stderr_task = self._watchdog_task = None
 
     async def kill_child(self):
@@ -133,10 +138,8 @@ class MCPProxy:
         for t in (self._forward_task, self._stderr_task):
             if t:
                 t.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError, Exception):
                     await t
-                except (asyncio.CancelledError, Exception):
-                    pass
         self._forward_task = self._stderr_task = None
 
     async def reinit_child(self):
@@ -145,7 +148,7 @@ class MCPProxy:
         if not await self._write_child((self.init_msg + "\n").encode()):
             return
         try:
-            await asyncio.wait_for(self.child.stdout.readline(), timeout=10)
+            await asyncio.wait_for(self.child.stdout.readline(), timeout=10)  # type: ignore[union-attr]
         except Exception:
             return
         notif = json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"})
@@ -154,7 +157,7 @@ class MCPProxy:
     async def _forward_child_stdout(self):
         try:
             while self.child and self.child.returncode is None:
-                line = await self.child.stdout.readline()
+                line = await self.child.stdout.readline()  # type: ignore[union-attr]
                 if not line:
                     break
                 try:
@@ -179,7 +182,7 @@ class MCPProxy:
     async def _forward_child_stderr(self):
         try:
             while self.child and self.child.returncode is None:
-                line = await self.child.stderr.readline()
+                line = await self.child.stderr.readline()  # type: ignore[union-attr]
                 if not line:
                     break
                 sys.stderr.buffer.write(line)
@@ -201,18 +204,30 @@ class MCPProxy:
             await self.start_child(start_tasks=False)
             await self.reinit_child()
             self._start_background_tasks()
-            resp = json.dumps({
-                "jsonrpc": "2.0", "id": req_id,
-                "result": {"content": [{"type": "text", "text": "Server reloaded successfully."}]},
-            }) + "\n"
+            resp = (
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "result": {"content": [{"type": "text", "text": "Server reloaded successfully."}]},
+                    }
+                )
+                + "\n"
+            )
             await self._write_stdout(resp.encode())
             notif = json.dumps({"jsonrpc": "2.0", "method": "notifications/tools/list_changed"}) + "\n"
             await self._write_stdout(notif.encode())
         except Exception as e:
-            err = json.dumps({
-                "jsonrpc": "2.0", "id": req_id,
-                "error": {"code": -32603, "message": f"Reload failed: {e}"},
-            }) + "\n"
+            err = (
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "error": {"code": -32603, "message": f"Reload failed: {e}"},
+                    }
+                )
+                + "\n"
+            )
             await self._write_stdout(err.encode())
         finally:
             buf, self._buffer = self._buffer, []
@@ -225,9 +240,7 @@ class MCPProxy:
 
         loop = asyncio.get_event_loop()
         stdin_reader = asyncio.StreamReader()
-        await loop.connect_read_pipe(
-            lambda: asyncio.StreamReaderProtocol(stdin_reader), sys.stdin.buffer
-        )
+        await loop.connect_read_pipe(lambda: asyncio.StreamReaderProtocol(stdin_reader), sys.stdin.buffer)
 
         while True:
             try:
@@ -288,7 +301,7 @@ def main():
     if "--" not in sys.argv:
         print("Usage: python mcp-proxy.py -- <command> [args...]", file=sys.stderr)
         sys.exit(1)
-    child_cmd = sys.argv[sys.argv.index("--") + 1:]
+    child_cmd = sys.argv[sys.argv.index("--") + 1 :]
     if not child_cmd:
         print("No child command specified after --", file=sys.stderr)
         sys.exit(1)
